@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -7,6 +7,10 @@ const WordTemplateEditor = () => {
   const [editorHtml, setEditorHtml] = useState("");
   const quillRef = useRef<ReactQuill | null>(null); // Tipar correctamente la referencia
   const [selectedVariable, setSelectedVariable] = useState("");
+
+  useEffect(() => {
+    console.log(editorHtml);
+  }, [editorHtml]);
 
   // Función para manejar cambios en el editor
   const handleChange = (content: string) => {
@@ -70,10 +74,38 @@ const WordTemplateEditor = () => {
 
   // Función para enviar el contenido al backend
   const sendTemplateToBackend = async () => {
-    await axios
-      .post("http://localhost:3001/", { doc: editorHtml })
-      .then(() => alert("Datos enviados"))
-      .catch(() => alert("No se pudo enviar los datos"));
+    try {
+      const response = await axios.post(
+        "http://localhost:3002/",
+        { doc: editorHtml }, // Asegúrate de enviar el contenido HTML correcto
+        {
+          responseType: "blob", // Establecer el tipo de respuesta a blob
+        }
+      );
+
+      console.log(response);
+
+      // Crear un objeto Blob con la respuesta
+      const blob = new Blob([response.data]);
+
+      // Crear un enlace temporal para la descarga
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `document-${Date.now()}.pdf`); // Nombre del archivo
+
+      // Agregar el enlace al documento y hacer clic en él
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpiar el enlace después de la descarga
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url); // Liberar la URL del objeto
+
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
+      alert("No se pudo enviar los datos");
+    }
   };
 
   return (
@@ -85,7 +117,12 @@ const WordTemplateEditor = () => {
     >
       <ReactQuill
         ref={quillRef} // Referencia al editor
-        style={{ flexGrow: 1, color: "black", background: "white" }}
+        style={{
+          flexGrow: 1,
+          color: "black",
+          background: "white",
+          width: "450px",
+        }}
         value={editorHtml}
         onChange={handleChange}
         modules={WordTemplateEditor.modules}

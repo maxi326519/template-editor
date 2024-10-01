@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import convertHtmlToWord from "./service/Word/createDoc";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import creatPDF from "./service/Word/createPDF";
 
 // Init express
 const app = express();
@@ -17,9 +17,10 @@ app.post("/", async (req: Request, res: Response) => {
   try {
     const { doc } = req.body;
 
-    convertHtmlToWord(doc);
+    // const buffer = await convertHtmlToWord(doc);
+    await creatPDF(doc, res);
 
-    res.status(200).json({ message: "Doc creado" });
+    // res.status(200).send(buffer);
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -27,6 +28,6 @@ app.post("/", async (req: Request, res: Response) => {
 });
 
 // Server start
-app.listen(3001, () => {
-  console.log("Server listening on port 3001");
+app.listen(3002, () => {
+  console.log("Server listening on port 3002");
 });

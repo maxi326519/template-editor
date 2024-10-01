@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "docxtemplater": "^3.50.0",
+    "html-pdf": "^3.0.1",
+    "html-to-pdf": "^0.1.11",
+    "pizzip": "^3.1.7"
+  },
+  "devDependencies": {
+    "@types/html-pdf": "^3.0.3"
+  }
+}

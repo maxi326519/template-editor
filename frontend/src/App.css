@@ -6,3 +6,20 @@
   width: 100%;
   height: 100vh;
 }
+
+.ql-container {
+  width: 700px !important;
+  margin: auto;
+  padding: 50px;
+  margin-top: 50px;
+  border-top: 1px solid #ccc !important;
+}
+
+.ql-container p {
+  margin: 10px 0px;
+}
+
+.ql-container .ql-indent-1 {
+  text-indent: 50px !important;
+  padding-left: 0px !important;
+}
