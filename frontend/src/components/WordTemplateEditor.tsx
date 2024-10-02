@@ -73,17 +73,15 @@ const WordTemplateEditor = () => {
   };
 
   // Función para enviar el contenido al backend
-  const sendTemplateToBackend = async () => {
+  const sendTemplateToBackend = async (route: string) => {
     try {
       const response = await axios.post(
-        "http://localhost:3002/",
+        `http://localhost:3002/${route}`,
         { doc: editorHtml }, // Asegúrate de enviar el contenido HTML correcto
         {
           responseType: "blob", // Establecer el tipo de respuesta a blob
         }
       );
-
-      console.log(response);
 
       // Crear un objeto Blob con la respuesta
       const blob = new Blob([response.data]);
@@ -92,7 +90,12 @@ const WordTemplateEditor = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `document-${Date.now()}.pdf`); // Nombre del archivo
+      link.setAttribute(
+        "download",
+        `${
+          route === "doc" ? "Documento" : route === "pdf" ? "PDF" : ""
+        }-${Date.now()}.${route}`
+      ); // Nombre del archivo
 
       // Agregar el enlace al documento y hacer clic en él
       document.body.appendChild(link);
@@ -101,7 +104,6 @@ const WordTemplateEditor = () => {
       // Limpiar el enlace después de la descarga
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url); // Liberar la URL del objeto
-
     } catch (error) {
       console.error("Error al enviar los datos:", error);
       alert("No se pudo enviar los datos");
@@ -151,7 +153,12 @@ const WordTemplateEditor = () => {
         <button onClick={() => replaceStyledText("Nombre", "Maximiliano")}>
           Reemplazar
         </button>
-        <button onClick={sendTemplateToBackend}>Generar documento Word</button>
+        <button onClick={() => sendTemplateToBackend("doc")}>
+          Generar documento Word
+        </button>
+        <button onClick={() => sendTemplateToBackend("pdf")}>
+          Generar documento PDF
+        </button>
       </div>
     </div>
   );

@@ -39,8 +39,6 @@ export default async function creatPDF(
   
 `;
 
-  const serverPath = path.join(__dirname, `${new Date().getTime()}.pdf`);
-
   const options = {
     format: "A4" as "A4",
     border: {
@@ -62,9 +60,6 @@ export default async function creatPDF(
       },
     },
   };
-
-  // Generar PDF y guardar como archivo
-  let pdfBuffer: Buffer | null = null;
 
   pdf.create(html, options as any).toBuffer((err, buffer) => {
     if (err) return console.log(err);

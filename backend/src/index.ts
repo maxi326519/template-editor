@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
+import convertHtmlToWord from "./service/Word/createDoc";
+import creatPDF from "./service/PDF/createPDF";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import creatPDF from "./service/Word/createPDF";
 
 // Init express
 const app = express();
@@ -13,14 +14,24 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 // Routes
-app.post("/", async (req: Request, res: Response) => {
+app.post("/doc", async (req: Request, res: Response) => {
   try {
     const { doc } = req.body;
 
-    // const buffer = await convertHtmlToWord(doc);
-    await creatPDF(doc, res);
+    const buffer = await convertHtmlToWord(doc);
 
-    // res.status(200).send(buffer);
+    res.status(200).send(buffer);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+});
+
+app.post("/pdf", async (req: Request, res: Response) => {
+  try {
+    const { doc } = req.body;
+
+    await creatPDF(doc, res);
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
