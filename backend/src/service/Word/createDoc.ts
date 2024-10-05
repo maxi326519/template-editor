@@ -38,15 +38,6 @@ const convertHtmlToWord = async (htmlContent: string) => {
         <head>
           <meta charset="UTF-8" />
           <title>Document</title>
-          <style>
-            p {
-              text-align: justify;
-              font-style: italic;
-            }
-              .ql-align-justify {
-              text-align: justify;
-            }
-          </style>
         </head>
         <body style="font-family: Arial, sans-serif; text-aling: center;">
           ${htmlContent.replace("em>", "i>")}
