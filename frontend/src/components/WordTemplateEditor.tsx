@@ -3,6 +3,8 @@ import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
+const textHtml = `<p class="ql-indent-1">Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</p><p class="ql-indent-1 ql-align-center">	Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</p><p class="ql-indent-1 ql-align-right">	Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</p><p class="ql-indent-1 ql-align-justify">		Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</p><p><span class="ql-size-small">Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</span></p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</p><p><span class="ql-size-large">Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</span></p><p><span class="ql-size-huge">Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo ducimus, accusamus commodi deleniti obcaecati praesentium voluptatibus molestiae blanditiis sint? Atque consequatur ullam rerum porro aliquam laborum doloremque obcaecati ad! Ipsa.</span></p>`;
+
 const WordTemplateEditor = () => {
   const [editorHtml, setEditorHtml] = useState("");
   const quillRef = useRef<ReactQuill | null>(null); // Tipar correctamente la referencia
@@ -20,6 +22,7 @@ const WordTemplateEditor = () => {
   // Función para reemplazar texto con un estilo específico
   const replaceStyledText = (oldText: string, newText: string) => {
     const quill = quillRef.current?.getEditor();
+
     if (quill) {
       const delta = quill.getContents();
       if (delta.ops) {
@@ -77,7 +80,7 @@ const WordTemplateEditor = () => {
     try {
       const response = await axios.post(
         `http://localhost:3002/${route}`,
-        { doc: editorHtml }, // Asegúrate de enviar el contenido HTML correcto
+        { doc: handleStyles() }, // Asegúrate de enviar el contenido HTML correcto
         {
           responseType: "blob", // Establecer el tipo de respuesta a blob
         }
@@ -109,6 +112,52 @@ const WordTemplateEditor = () => {
       alert("No se pudo enviar los datos");
     }
   };
+
+  function handleStyles(): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(editorHtml, "text/html");
+
+    // Mapeo de clases a estilos (puedes expandirlo según necesites)
+    const classToStyleMap: { [key: string]: string } = {
+      "ql-align-justify": "text-align: justify;",
+      "ql-align-center": "text-align: center;",
+      "ql-align-left": "text-align: left;",
+      "ql-align-right": "text-align: right;",
+      "ql-size-small": "font-size: 8pt;",
+      "ql-size-normal": "font-size: 11pt;",
+      "ql-size-large": "font-size: 15pt;",
+      "ql-size-huge": "font-size: 20pt;",
+      "ql-bold": "font-weight: bold;",
+      "ql-italic": "font-style: italic;",
+    };
+
+    // Función recursiva para recorrer todos los nodos del body
+    function traverseNodes(node: Node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement; // Aseguramos que es un HTMLElement
+        // Si tiene una clase, aplicamos los estilos
+        const classes: string[] = element.className.split(" ");
+        const styles: string[] = classes
+          .map((cls: string) => classToStyleMap[cls])
+          .filter(Boolean);
+
+        // Si hay estilos, los aplicamos
+        if (styles.length > 0) {
+          element.setAttribute("style", styles.join(" "));
+        }
+      }
+
+      // Recorrer los hijos
+      node.childNodes.forEach((child) => traverseNodes(child));
+    }
+
+    // Iniciar el recorrido desde el body
+    traverseNodes(doc.body);
+
+    // Devolver el HTML convertido
+    console.log(doc.body);
+    return doc.body.innerHTML;
+  }
 
   return (
     <div
@@ -159,6 +208,10 @@ const WordTemplateEditor = () => {
         <button onClick={() => sendTemplateToBackend("pdf")}>
           Generar documento PDF
         </button>
+        <button onClick={handleStyles}>Reemplazar estilos</button>
+        <button onClick={() => setEditorHtml(textHtml)}>
+          Texto de ejemplo
+        </button>
       </div>
     </div>
   );
@@ -168,19 +221,19 @@ const WordTemplateEditor = () => {
 WordTemplateEditor.modules = {
   toolbar: [
     ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["blockquote", "code-block"],
-    ["link", "image", "video", "formula"],
+    // ["blockquote", "code-block"],
+    // ["link", "image", "video", "formula"],
 
-    [{ header: 1 }, { header: 2 }], // custom button values
+    // [{ header: 1 }, { header: 2 }], // custom button values
     [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
-    [{ script: "sub" }, { script: "super" }], // superscript/subscript
+    // [{ script: "sub" }, { script: "super" }], // superscript/subscript
     [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-    [{ direction: "rtl" }], // text direction
+    // [{ direction: "rtl" }], // text direction
 
     [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
+    // [{ header: [1, 2, 3, 4, 5, 6, false] }],
 
-    [{ font: [] }],
+    // [{ font: [] }],
     [{ align: [] }],
 
     ["clean"],
